@@ -14,9 +14,9 @@ const genAI = process.env.GOOGLE_AI_API_KEY
   : null
 
 export async function POST(req: NextRequest) {
-  let selectedModel = 'gpt-4'
+  let selectedModel = 'gemini-2.5-pro'
   try {
-    const { messages, model = 'gpt-4' } = await req.json()
+    const { messages, model = 'gemini-2.5-pro' } = await req.json()
     selectedModel = model
 
     if (!messages || !Array.isArray(messages)) {
