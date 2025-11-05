@@ -1,0 +1,5 @@
+# Ensure .nvmrc uses LF line endings
+.nvmrc text eol=lf
+
+# Auto detect text files and normalize line endings
+* text=auto
