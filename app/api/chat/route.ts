@@ -5,9 +5,11 @@ import { GoogleGenerativeAI } from '@google/generative-ai'
 // Force Node.js runtime for OpenAI SDK compatibility
 export const runtime = 'nodejs'
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+const openai = process.env.OPENAI_API_KEY
+  ? new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    })
+  : null
 
 const genAI = process.env.GOOGLE_AI_API_KEY 
   ? new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY)
@@ -40,21 +42,46 @@ export async function POST(req: NextRequest) {
       const geminiModelName = model === 'gemini-2.5-pro' ? 'gemini-2.0-flash-exp' : 'gemini-1.5-pro'
       const geminiModel = genAI.getGenerativeModel({ model: geminiModelName })
 
+      // Helper function to build message content with attachments
+      const buildMessageContent = (msg: any) => {
+        let content = msg.content || ''
+        
+        if (msg.attachments && Array.isArray(msg.attachments)) {
+          const attachmentTexts = msg.attachments.map((att: any) => {
+            if (att.type === 'file' && att.content) {
+              return `[File: ${att.name || 'untitled'}]\n${att.content}`
+            } else if (att.type === 'url' && att.content) {
+              return `[URL: ${att.url}]\n${att.content}`
+            }
+            return ''
+          }).filter(Boolean)
+          
+          if (attachmentTexts.length > 0) {
+            content = content 
+              ? `${content}\n\n${attachmentTexts.join('\n\n---\n\n')}`
+              : attachmentTexts.join('\n\n---\n\n')
+          }
+        }
+        
+        return content
+      }
+
       // Convert messages to Gemini format (Gemini uses alternating user/model messages)
       // For chat, we need to format as history
-      const chatHistory = messages.slice(0, -1).map((msg: { role: string; content: string }) => ({
+      const chatHistory = messages.slice(0, -1).map((msg: any) => ({
         role: msg.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: msg.content }],
+        parts: [{ text: buildMessageContent(msg) }],
       }))
 
       const lastMessage = messages[messages.length - 1]
+      const lastMessageContent = buildMessageContent(lastMessage)
       
       // Start a chat session with history
       const chat = geminiModel.startChat({
         history: chatHistory as any,
       })
 
-      const result = await chat.sendMessage(lastMessage.content)
+      const result = await chat.sendMessage(lastMessageContent)
       const response = await result.response
       const assistantMessage = response.text()
 
@@ -71,17 +98,41 @@ export async function POST(req: NextRequest) {
     }
 
     // Handle OpenAI models (GPT-4, etc.)
-    if (!process.env.OPENAI_API_KEY) {
+    if (!openai || !process.env.OPENAI_API_KEY) {
       return NextResponse.json(
-        { error: 'OpenAI API key is not configured' },
+        { error: 'OpenAI API key is not configured. Please configure OPENAI_API_KEY to use OpenAI models.' },
         { status: 500 }
       )
     }
 
+    // Helper function to build message content with attachments
+    const buildMessageContent = (msg: any) => {
+      let content = msg.content || ''
+      
+      if (msg.attachments && Array.isArray(msg.attachments)) {
+        const attachmentTexts = msg.attachments.map((att: any) => {
+          if (att.type === 'file' && att.content) {
+            return `[File: ${att.name || 'untitled'}]\n${att.content}`
+          } else if (att.type === 'url' && att.content) {
+            return `[URL: ${att.url}]\n${att.content}`
+          }
+          return ''
+        }).filter(Boolean)
+        
+        if (attachmentTexts.length > 0) {
+          content = content 
+            ? `${content}\n\n${attachmentTexts.join('\n\n---\n\n')}`
+            : attachmentTexts.join('\n\n---\n\n')
+        }
+      }
+      
+      return content
+    }
+
     // Format messages for OpenAI API
-    const formattedMessages = messages.map((msg: { role: string; content: string }) => ({
+    const formattedMessages = messages.map((msg: any) => ({
       role: msg.role === 'assistant' ? 'assistant' : 'user',
-      content: msg.content,
+      content: buildMessageContent(msg),
     }))
 
     // Map model selection to OpenAI model names
