@@ -1,6 +1,6 @@
-# Sourced AI Chat
+# CodeSupplyChat
 
-**Sourced AI Chat** is an AI-powered conversational assistant built on the Google Gemini API. It provides fast, context-aware responses through a modern web interface designed for scalability, extensibility, and ease of use.
+**CodeSupplyChat** is an AI-powered conversational assistant built on the Google Gemini API. It provides fast, context-aware responses through a modern web interface designed for scalability, extensibility, and ease of use.
 
 ---
 
