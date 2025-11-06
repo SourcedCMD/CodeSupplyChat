@@ -13,8 +13,15 @@ const doto = Doto({
 
 export const metadata: Metadata = {
   title: "Sourced AI Chat",
-  description: "Deployed with Netlify",
-  generator: "Sourced AI Chat",
+  description: "Created with v0",
+  generator: "v0.app",
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    apple: "/favicon.svg",
+  },
 }
 
 export default function RootLayout({
