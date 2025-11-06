@@ -12,9 +12,9 @@ const doto = Doto({
 })
 
 export const metadata: Metadata = {
-  title: "Sourced AI Chat",
-  description: "Created with v0",
-  generator: "v0.app",
+  title: "CodeSupply Chat",
+  description: "Created with 💖",
+  generator: "CodeSupply",
   icons: {
     icon: [
       { url: "/favicon.svg", type: "image/svg+xml" },
